@@ -1,53 +1,56 @@
-import type { Leistungsposten } from "./pflege.type";
+import type { Leistungskontext, Leistungsposten } from "./pflege.type";
 import type { Zeitraum } from "./zeitraum.type";
-import { PflegegeldMap } from "./hoechstsaetze.map";
+import { PflegegeldMap, PflegesachleistungsMap } from "./hoechstsaetze.map";
 import type { Kalender } from "./kalender.type";
+import { Leistungsart, type Pflegegrad } from "./pflege.enums";
 
 
 export function ermittlePflegegeld(abrechnungszeitraumListe: Array<Zeitraum>,
-		pflegegrad: string, kalender: Kalender): Array<Leistungsposten> {
+		pflegegrad: Pflegegrad, leistungskontext: Leistungskontext): Array<Leistungsposten> {
     
     const pflegegeldAnspruch = PflegegeldMap.get(pflegegrad);
+	let pflegesachleistungsAnspruch = PflegesachleistungsMap.get(pflegegrad);
 
 		if (pflegegeldAnspruch === undefined) {
 			return [];
 		}
 
+		if (pflegesachleistungsAnspruch === undefined) {
+			pflegesachleistungsAnspruch = 0;
+		}
+
 		return abrechnungszeitraumListe.map((abrechnungszeitraum) => ({
 			beginn: abrechnungszeitraum.beginn,
 			ende: abrechnungszeitraum.ende,
-			leistungsart: 'PFLEGEGELD',
+			leistungsart: Leistungsart.PFLEGEGELD,
 			tage: abrechnungszeitraum.tage,
-			betrag: berechnePflegegeldTageweise(abrechnungszeitraum, pflegegeldAnspruch)
+			betrag: berechnePflegegeld(abrechnungszeitraum, pflegegeldAnspruch, leistungskontext)
 		}));
 	}
 
-function berechnePflegegeld() {
+function berechnePflegegeld(abrechnungszeitraum: Zeitraum, pflegegeldAnspruch: number, leistungskontext: Leistungskontext) {
+
+	let pflegesachleistungsAnspruch = PflegesachleistungsMap.get(leistungskontext.pflegegrad)
+
+	if (pflegesachleistungsAnspruch === undefined) {
+		pflegesachleistungsAnspruch = 0;
+	}
+
+	let pflegesachleistungsBetrag = 0;
+	if(leistungskontext.leistungsart === Leistungsart.PFLEGESACHLEISTUNG) {
+		pflegesachleistungsBetrag = leistungskontext.rechnungsbetrag;
+	}
+
+    let pflegegeldTageweise = berechnePflegegeldTageweise(abrechnungszeitraum, pflegegeldAnspruch);
     
-    // Pflegegeld tageweise
-    // Pflegegeld anteilig
+	let pflegegeldAnteilig = berechnePflegegeldAnteilig(abrechnungszeitraum, pflegegeldAnspruch, pflegesachleistungsAnspruch, pflegesachleistungsBetrag);
 
-    // Vergleiche tageweise mit anteilig, zahle kleineren Betrag
-}
-
-export function ermittlePflegegeldTageweise(
-		abrechnungszeitraumListe: Array<Zeitraum>,
-		pflegegrad: string
-	): Array<Leistungsposten> {
-		const pflegegeldAnspruch = PflegegeldMap.get(pflegegrad);
-
-		if (pflegegeldAnspruch === undefined) {
-			return [];
-		}
-
-		return abrechnungszeitraumListe.map((abrechnungszeitraum) => ({
-			beginn: abrechnungszeitraum.beginn,
-			ende: abrechnungszeitraum.ende,
-			leistungsart: 'PFLEGEGELD',
-			tage: abrechnungszeitraum.tage,
-			betrag: berechnePflegegeldTageweise(abrechnungszeitraum, pflegegeldAnspruch)
-		}));
+    if (pflegegeldTageweise > pflegegeldAnteilig) {
+		return pflegegeldAnteilig;
+	} else {
+		return pflegegeldTageweise;
 	}
+}
 
 function berechnePflegegeldTageweise(zeitraum: Zeitraum, pflegegeldAnspruch: number): number {
 		if (pflegegeldAnspruch === undefined) {
@@ -66,3 +69,18 @@ function berechnePflegegeldTageweise(zeitraum: Zeitraum, pflegegeldAnspruch: num
 
 		return Math.min(pflegegeldAnspruch, (pflegegeldAnspruch / 30) * zeitraum.tage);
 	}
+
+function berechnePflegegeldAnteilig(zeitraum: Zeitraum, pflegegeldAnspruch: number, pflegesachleistungsAnspruch: number, pflegesachleistungsBetrag: number): number {	
+	if (pflegegeldAnspruch === undefined) {
+		return 0;
+	}
+
+	let anteilPflegesachleistungAusgeschoepft = pflegesachleistungsBetrag / pflegesachleistungsAnspruch;
+
+	if (anteilPflegesachleistungAusgeschoepft >= 1) {
+		return 0;
+	} else {
+		return pflegegeldAnspruch * (1 - anteilPflegesachleistungAusgeschoepft);
+	}
+
+}

@@ -9,7 +9,6 @@ export type Zeitraum = {
 export function ermittleAbrechnungszeitraumListe(beginn: SvelteDate, ende: SvelteDate): Array<Zeitraum> {
 		const abrechnungszeitraumListe: Array<Zeitraum> = [];
 
-		// Use a standard `Date` for the iterator to avoid mutating reactive state inside a derived computation.
 		let current = new Date(beginn.getFullYear(), beginn.getMonth(), 1);
 		while (current <= ende) {
 			let monthBegin = new SvelteDate(current.getFullYear(), current.getMonth(), 1);
@@ -46,4 +45,11 @@ export function schneidetZeitraum (zeitraumInput : Zeitraum, zeitraum : Zeitraum
    } else {
     return false;
    }
+}
+
+export function tageInZeitraum (beginn: SvelteDate, ende: SvelteDate): number {
+		const oneDay = 1000 * 60 * 60 * 24;
+		const diffTime = Math.abs(ende.getTime() - beginn.getTime());
+		const diffDays = Math.floor(diffTime / oneDay) + 1;
+		return diffDays;
 }

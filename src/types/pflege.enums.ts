@@ -1,4 +1,5 @@
 export enum Pflegegrad {
+    PFLEGEGRAD_0,
     PFLEGEGRAD_1,
     PFLEGEGRAD_2,
     PFLEGEGRAD_3,
