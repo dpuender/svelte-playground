@@ -2,8 +2,8 @@
 	import { SvelteDate } from 'svelte/reactivity';
 	import {
 		ermittleAbrechnungszeitraumListe,
-		tageInZeitraum,
-		type Zeitraum
+		ermittleAbrechnungszeitraumListeFuerPflegegeld,
+		tageInZeitraum
 	} from '../../types/zeitraum.type';
 	import { ermittlePflegegeld } from '../../types/regulierung.pflegegeld';
 	import { pflegegradOptions, type Leistungskontext } from '../../types/pflege.type';
@@ -23,7 +23,7 @@
 
 	let abrechnungszeitraumListe = $derived(
 		beginnDatum && endeDatum && beginnDatum <= endeDatum
-			? ermittleAbrechnungszeitraumListe(beginnDatum, endeDatum)
+			? ermittleAbrechnungszeitraumListeFuerPflegegeld(beginnDatum, endeDatum)
 			: []
 	);
 
@@ -44,30 +44,36 @@
 
 	let leistungspostenListe = $derived(
 		abrechnungszeitraumListe.length > 0 && pflegegrad
-			? ermittlePflegegeld(abrechnungszeitraumListe, pflegegrad, leistungskontext!)
+			? ermittlePflegegeld(abrechnungszeitraumListe, leistungskontext!)
 			: []
 	);
 </script>
 
-<container class="grid w-full grid-cols-1 gap-2 p-2">
-	<div class="card border-2 p-6">
-		<form>
-			<section class="label">Pflegegrad</section>
-			<select class="select" bind:value={pflegegrad}>
-				<option value={undefined} disabled selected>Bitte auswählen</option>
-				{#each pflegegradOptions as option}
-					<option value={option.value}>{option.label}</option>
-				{/each}
-			</select>
-			<section class="label">Beginn</section>
-			<input type="date" class="input" bind:value={beginnString} />
-			<section class="label">Ende</section>
-			<input type="date" class="input" bind:value={endeString} />
+<container class="w-full">
+	<div class="card mr-2 ml-2 border-2 p-4">
+		<form class="grid grid-cols-3 gap-2">
+			<div class="col-span-1">
+				<section class="label">Pflegegrad</section>
+				<select class="select" bind:value={pflegegrad}>
+					<option value={undefined} disabled selected>Bitte auswählen</option>
+					{#each pflegegradOptions as option}
+						<option value={option.value}>{option.label}</option>
+					{/each}
+				</select>
+			</div>
+			<div>
+				<section class="label">Beginn</section>
+				<input type="date" class="input" bind:value={beginnString} />
+			</div>
+			<div>
+				<section class="label">Ende</section>
+				<input type="date" class="input" bind:value={endeString} />
+			</div>
 		</form>
 	</div>
 
 	{#each leistungspostenListe as leistungsposten}
-		<div class="card grid grid-cols-5 gap-1 border-2 p-2">
+		<div class="card preset-tonal-secondary m-2 grid grid-cols-5 gap-1 border-2 p-4">
 			<div>
 				<div class="label">Beginn</div>
 				<div class="input">{formatter.format(leistungsposten.beginn)}</div>

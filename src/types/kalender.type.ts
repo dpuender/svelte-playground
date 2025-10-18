@@ -15,6 +15,8 @@ export function fuelleKalender(
 		zeitraum: Zeitraum,
 		erstattungszeitraum: number
 	) {
+        console.log('Zeitraum: ', zeitraum)
+
 		let kalender: Kalender = {
 			kalenderEintraege: []
 		};
@@ -25,16 +27,23 @@ export function fuelleKalender(
         })
 
         kalender.kalenderEintraege.push({
-            datum: zeitraum.ende,
+            datum: addDays(zeitraum.beginn, erstattungszeitraum -1),
             anspruch: PflegegeldAnspruchart.VOLL_ENTLASSTAG
         })
 
-		for (let i = 1; i <= erstattungszeitraum; i++) {
+		for (let i = 1; i <= erstattungszeitraum - 2; i++) {
             kalender.kalenderEintraege.push({
                 datum: addDays(zeitraum.beginn, i),
                 anspruch: PflegegeldAnspruchart.HALBER_ANSPRUCH_WEGEN_KZP_VHP
             })
 		}
+
+        for (let i = erstattungszeitraum; i <= zeitraum.tage; i++) {
+            kalender.kalenderEintraege.push({
+                datum: addDays(zeitraum.beginn, i),
+                anspruch: PflegegeldAnspruchart.VOLLER_ANSPRUCH
+            })
+        }
 
 		return kalender;
 		}
@@ -54,8 +63,9 @@ export function getMonatAusKalender (monat: number, kalender: Kalender): Kalende
 
 }
 
-function addDays(date: SvelteDate, days: number): SvelteDate {
-		let resultDate = new SvelteDate(date);
-		resultDate.setDate(resultDate.getDate() + days);
-		return resultDate;
+
+export function addDays(date: SvelteDate, days: number): SvelteDate {
+		const newDate = new Date(date.getTime());
+		newDate.setDate(newDate.getDate() + days);
+		return new SvelteDate(newDate);
 	}

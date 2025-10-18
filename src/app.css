@@ -6,5 +6,6 @@
 @import '@skeletonlabs/skeleton/optional/presets';
 @import '@skeletonlabs/skeleton/themes/cerberus';
 @import '@skeletonlabs/skeleton/themes/vintage';
+@import '@skeletonlabs/skeleton/themes/seafoam';
 
 @source '../node_modules/@skeletonlabs/skeleton-svelte/dist';

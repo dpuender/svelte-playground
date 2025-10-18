@@ -14,6 +14,11 @@ export enum Leistungsart {
     VERHINDERUNGSPFLEGE
 }
 
+export const StringToLeistungsartMap = new Map<string, Leistungsart>([
+['VHP', Leistungsart.VERHINDERUNGSPFLEGE],
+['KZP', Leistungsart.KURZZEITPFLEGE]
+])
+
 export enum PflegegeldAnspruchart {
     VOLLER_ANSPRUCH,
     HALBER_ANSPRUCH_WEGEN_KZP_VHP,

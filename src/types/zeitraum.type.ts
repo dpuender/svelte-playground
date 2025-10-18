@@ -6,20 +6,56 @@ export type Zeitraum = {
     tage: number;
 }
 
+//Diese Funktion sorgt dafür, dass das Pflegegeld immer für volle Monate im Zusammenhang mit weiteren Leistungsarten berechnet wird
 export function ermittleAbrechnungszeitraumListe(beginn: SvelteDate, ende: SvelteDate): Array<Zeitraum> {
 		const abrechnungszeitraumListe: Array<Zeitraum> = [];
 
 		let current = new Date(beginn.getFullYear(), beginn.getMonth(), 1);
 		while (current <= ende) {
+
 			let monthBegin = new SvelteDate(current.getFullYear(), current.getMonth(), 1);
 			let monthEnd = new SvelteDate(current.getFullYear(), current.getMonth() + 1, 0);
 
 			let actualBegin = monthBegin < beginn ? beginn : monthBegin;
 			let actualEnd = monthEnd > ende ? ende : monthEnd;
 
-			const oneDay = 1000 * 60 * 60 * 24;
-			const diffTime = Math.abs(actualEnd.getTime() - actualBegin.getTime());
-			const diffDays = Math.ceil(diffTime / oneDay) + 1;
+			const diffDays = monthEnd.getDate();
+
+			let zeitraum: Zeitraum = {
+				beginn: actualBegin,
+				ende: actualEnd,
+				tage: diffDays
+			};
+			abrechnungszeitraumListe.push(zeitraum);
+
+			current.setMonth(current.getMonth() + 1);
+		}
+		return abrechnungszeitraumListe;
+	}
+
+// Diese Funktion ist für die Verwendung im Zusammenhang mit Pflegegeld ohne weitere Leistung, um auch ein untermonatiges Pflegegeld ermitteln zu können.
+export function ermittleAbrechnungszeitraumListeFuerPflegegeld(beginn: SvelteDate, ende: SvelteDate): Array<Zeitraum> {
+		const abrechnungszeitraumListe: Array<Zeitraum> = [];
+
+		let current = new Date(beginn.getFullYear(), beginn.getMonth(), 1);
+		while (current <= ende) {
+
+			if (beginn.getMonth() === ende.getMonth()){
+				abrechnungszeitraumListe.push({
+					beginn: beginn,
+					ende: ende,
+					tage: ende.getDate()
+				})
+				break;
+			}
+
+			let monthBegin = new SvelteDate(current.getFullYear(), current.getMonth(), 1);
+			let monthEnd = new SvelteDate(current.getFullYear(), current.getMonth() + 1, 0);
+
+			let actualBegin = monthBegin < beginn ? beginn : monthBegin;
+			let actualEnd = monthEnd > ende ? ende : monthEnd;
+
+			const diffDays = monthEnd.getDate();
 
 			let zeitraum: Zeitraum = {
 				beginn: actualBegin,

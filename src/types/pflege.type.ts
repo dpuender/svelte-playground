@@ -11,10 +11,11 @@ export type  Leistungsposten = {
 	}
 
 export type Leistungskontext = {
-	leistungsart: Leistungsart;
+	leistungsart: Leistungsart | undefined;
 	rechnungsbetrag: number;
-	pflegegrad: Pflegegrad;
+	pflegegrad: Pflegegrad | undefined;
 	zeitraum: Zeitraum;
+	erstattungsZeitraum?: Zeitraum;
 }
 
 export const pflegegradOptions = [
